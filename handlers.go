@@ -20,13 +20,13 @@ func (bot * Bot) HandleOnCommand(command string, action func(*Message)) {
 			return m.Command() == command
 		},
 		Action:   action,
-		Priority: 1,
+		Priority: 5,
 	}
 	bot.handlers = append(bot.handlers, hand)
 }
 
 func (bot * Bot) handleNewMessage(m * Message) {
-	bot.Logger.Debugf("Handling new message: %s", m.Text)
+	bot.Logger.Debugf("Handling new message (choosing from %d handlers): %s", len(bot.handlers), m.Text)
 
 	handMatch := &Handler{Priority: -1}
 	for _, hand := range bot.handlers {
@@ -35,7 +35,7 @@ func (bot * Bot) handleNewMessage(m * Message) {
 		}
 	}
 	if handMatch.Priority == -1 {
-		bot.Logger.Debugf("No suitable handlers found (from total of %d handlers)!", len(bot.handlers))
+		bot.Logger.Debug("No suitable handlers found!")
 		return
 	}
 	handMatch.Action(m)
