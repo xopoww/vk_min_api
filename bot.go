@@ -21,7 +21,7 @@ type Bot struct {
 	requestsChan		chan []byte
 	waitGroup			sync.WaitGroup
 
-	handlers			[]Handler
+	handlers			handlerPool
 }
 
 type CallbackConfig struct {

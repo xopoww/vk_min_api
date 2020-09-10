@@ -1,42 +1,62 @@
 package vk_min_api
 
-type Handler struct {
-	Condition		func(*Message)bool
-	Action			func(*Message)
-	Priority		int
+type handlerPool struct {
+	defaultText		*func(*Message)
+	commands		map[string]func(*Message)
+	custom			[]customHandler
 }
 
-/* Add the default Handler for text messages
-Added handler has lowest priority. It catches not only plain text,
-but also unhandled commands.*/
-func (bot * Bot) HandleOnText(action func(*Message)) {
-	bot.handlers = append(bot.handlers, Handler{func(m * Message)bool{ return true }, action, 0})
+type customHandler struct {
+	condition		func(*Message)bool
+	action			func(*Message)
 }
 
-/* Add the handler for the command */
+/* Add the default Handler for messages
+Added handler has lowest priority. Fires only if no other handler has. If this function is called
+more than once, the default handler is taken from the last call (unrecommended).
+
+If not set and no other handler has fired on a message, a warning is logged.*/
+func (bot * Bot) HandleDefault(action func(*Message)) {
+	bot.handlers.defaultText = &action
+}
+
+/* Add the handler for the command. Has lower priority, than custom handlers, but higher priority,
+than the default one.*/
 func (bot * Bot) HandleOnCommand(command string, action func(*Message)) {
-	hand := Handler{
-		Condition: func(m *Message) bool {
-			return m.Command() == command
-		},
-		Action:   action,
-		Priority: 5,
-	}
-	bot.handlers = append(bot.handlers, hand)
+	bot.handlers.commands[command] = action
+}
+
+/* Add custom conditional handler.
+Catches the message if condition(m) is true. Has the highest priority (i.e. if custom handler fires
+on the message, neither command handlers not default handler will).
+
+If several handlers fire on the same message, only the earliest one will run
+(it is highly recommended to design more strict conditions for custom handlers).
+ */
+func (bot * Bot) HandleCustom(condition func(*Message)bool, action func(*Message)) {
+	bot.handlers.custom = append(bot.handlers.custom, customHandler{condition, action})
 }
 
 func (bot * Bot) handleNewMessage(m * Message) {
-	bot.Logger.Debugf("Handling new message (choosing from %d handlers): %s", len(bot.handlers), m.Text)
-
-	handMatch := &Handler{Priority: -1}
-	for _, hand := range bot.handlers {
-		if hand.Priority > handMatch.Priority && hand.Condition(m) {
-			handMatch = &hand
+	// check custom handlers
+	for _, hand := range bot.handlers.custom {
+		if hand.condition(m) {
+			hand.action(m)
+			return
 		}
 	}
-	if handMatch.Priority == -1 {
-		bot.Logger.Debug("No suitable handlers found!")
+	// check command handlers
+	if com := m.Command(); com != "" {
+		if action, found := bot.handlers.commands[com]; found {
+			action(m)
+			return
+		}
+	}
+	// apply default handler
+	if bot.handlers.defaultText != nil {
+		(*bot.handlers.defaultText)(m)
 		return
 	}
-	handMatch.Action(m)
+
+	bot.Logger.Warningf("Unhandled message: %s", m.Text)
 }
