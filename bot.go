@@ -72,6 +72,9 @@ func NewBot(properties Properties, listenForConfirmation bool, logger *gologs.Lo
 		secret: properties.Secret,
 		Logger: logger,
 		requestsChan: make(chan []byte, properties.CallbackProps.ReqChanSize),
+		handlers: handlerPool{
+			commands:    map[string]func(*Message){},
+		},
 	}
 
 	bot.Logger.Info("Initialized a VK bot.")
