@@ -7,7 +7,8 @@ type Handler struct {
 }
 
 /* Add the default Handler for text messages
-Added handler has lowest priority*/
+Added handler has lowest priority. It catches not only plain text,
+but also unhandled commands.*/
 func (bot * Bot) HandleOnText(action func(*Message)) {
 	bot.handlers = append(bot.handlers, Handler{func(m * Message)bool{ return true }, action, 0})
 }

@@ -14,41 +14,25 @@ const (
 	ApiAddr = "https://api.vk.com/"
 )
 
-func sendRequest(method string, params map[string]interface{}, token, version string)(*http.Response, error) {
-	vals := url.Values{}
-	for key, values := range params {
-		switch values.(type) {
-		case []string:
-			for _, value := range values.([]string) {
-				vals.Add(key, value)
-			}
-		default:
-			vals.Add(key, values.(string))
-		}
-	}
-	vals.Set("access_token", token)
-	vals.Set("v", version)
-	URL := fmt.Sprintf("%smethod/%s?%s", ApiAddr, method, vals.Encode())
+func sendRequest(method string, values url.Values, token, version string)(*http.Response, error) {
+	values.Set("access_token", token)
+	values.Set("v", version)
+	URL := fmt.Sprintf("%smethod/%s?%s", ApiAddr, method, values.Encode())
 	return http.Get(URL)
 }
 
-/* Send a request to VK API.
-if one of params values is a slice, it must be []string */
-func (bot * Bot) sendRequest(method string, params map[string]interface{})(*http.Response, error) {
-	return sendRequest(method, params, bot.token, bot.version)
+/* Send a request to VK API.*/
+func (bot * Bot) sendRequest(method string, values url.Values)(*http.Response, error) {
+	return sendRequest(method, values, bot.token, bot.version)
 }
 
 /* Get user objects for the ids in the slice by requesting users.get VK API method */
 func (bot * Bot) GetUsersByID(ids []int)([]User, error) {
-	idStrs := make([]string, len(ids))
-	for index, id := range ids {
-		idStrs[index] = string(id)
+	values := url.Values{}
+	for _, id := range ids {
+		values.Add("user_ids", string(id))
 	}
-	params := map[string]interface{}{
-		"user_ids": idStrs,
-		"name_case": "nom",
-	}
-	resp, err := bot.sendRequest("users.get", params)
+	resp, err := bot.sendRequest("users.get", values)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("API error: %s", err))
 	}
@@ -77,12 +61,12 @@ func (bot * Bot) GetUserByID(id int)(User, error){
 
 /* Send text message to user by id */
 func (bot * Bot) SendMessage(to int, msg string)error {
-	params := map[string]interface{}{
-		"user_id": to,
-		"random_id": rand.Uint32(),
-		"message": url.QueryEscape(msg),
-	}
-	resp, err := bot.sendRequest("messages.send", params)
+	values := url.Values{}
+	values.Set("user_id", string(to))
+	values.Set("random_id", string(rand.Uint32()))
+	values.Set("message", url.QueryEscape(msg))
+
+	resp, err := bot.sendRequest("messages.send", values)
 	if err != nil {
 		return err
 	}
