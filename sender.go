@@ -66,6 +66,8 @@ func (bot * Bot) SendMessage(to int, msg string)error {
 	values.Set("random_id", string(rand.Uint32()))
 	values.Set("message", url.QueryEscape(msg))
 
+	bot.Logger.Debugf("Sending message to user (id = %d): %s", to, msg)
+
 	resp, err := bot.sendRequest("messages.send", values)
 	if err != nil {
 		return err
@@ -80,6 +82,7 @@ func (bot * Bot) SendMessage(to int, msg string)error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("error reading body: %s", err))
 	}
+	bot.Logger.Debugf("Response body: %s", string(body))
 	err = json.Unmarshal(body, &respObj)
 	if err != nil {
 		return errors.New(fmt.Sprintf("json: %s", err))
