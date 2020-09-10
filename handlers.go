@@ -27,6 +27,7 @@ func (bot * Bot) HandleOnCommand(command string, action func(*Message)) {
 
 func (bot * Bot) handleNewMessage(m * Message) {
 	bot.Logger.Debugf("Handling new message: %s", m.Text)
+
 	handMatch := &Handler{Priority: -1}
 	for _, hand := range bot.handlers {
 		if hand.Priority > handMatch.Priority && hand.Condition(m) {

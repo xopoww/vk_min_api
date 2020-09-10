@@ -62,8 +62,8 @@ func (bot * Bot) GetUserByID(id int)(User, error){
 /* Send text message to user by id */
 func (bot * Bot) SendMessage(to int, msg string)error {
 	values := url.Values{}
-	values.Set("user_id", string(to))
-	values.Set("random_id", string(rand.Uint32()))
+	values.Set("user_id", fmt.Sprint(to))
+	values.Set("random_id", fmt.Sprint(rand.Uint32()))
 	values.Set("message", url.QueryEscape(msg))
 
 	bot.Logger.Debugf("Sending message to user (id = %d): %s", to, msg)
