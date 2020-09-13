@@ -30,7 +30,7 @@ func (bot * Bot) sendRequest(method string, values url.Values)(*http.Response, e
 func (bot * Bot) GetUsersByID(ids []int)([]User, error) {
 	values := url.Values{}
 	for _, id := range ids {
-		values.Add("user_ids", string(id))
+		values.Add("user_ids", fmt.Sprint(id))
 	}
 	resp, err := bot.sendRequest("users.get", values)
 	if err != nil {
