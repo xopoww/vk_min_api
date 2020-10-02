@@ -22,6 +22,8 @@ type Bot struct {
 	waitGroup			sync.WaitGroup
 
 	handlers			handlerPool
+
+	verbose				bool
 }
 
 type CallbackConfig struct {
@@ -44,6 +46,7 @@ type Properties struct {
 	Version string
 	Secret string
 	CallbackProps *CallbackConfig
+	VerboseLogging bool
 }
 
 func NewBot(properties Properties, listenForConfirmation bool)(*Bot, error) {
@@ -75,6 +78,7 @@ func NewBot(properties Properties, listenForConfirmation bool)(*Bot, error) {
 		handlers: handlerPool{
 			commands:    map[string]func(*Message){},
 		},
+		verbose: properties.VerboseLogging,
 	}
 
 	return &bot, nil

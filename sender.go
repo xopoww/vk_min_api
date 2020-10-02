@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -14,16 +15,15 @@ const (
 	ApiAddr = "https://api.vk.com/"
 )
 
-func sendRequest(method string, values url.Values, token, version string)(*http.Response, error) {
-	values.Set("access_token", token)
-	values.Set("v", version)
-	URL := fmt.Sprintf("%smethod/%s?%s", ApiAddr, method, values.Encode())
-	return http.Get(URL)
-}
-
 /* Send a request to VK API.*/
 func (bot * Bot) sendRequest(method string, values url.Values)(*http.Response, error) {
-	return sendRequest(method, values, bot.token, bot.version)
+	values.Set("access_token", bot.token)
+	values.Set("v", bot.version)
+	URL := fmt.Sprintf("%smethod/%s?%s", ApiAddr, method, values.Encode())
+	if bot.verbose {
+		log.Printf("Sending a request: %s", URL)
+	}
+	return http.Get(URL)
 }
 
 /* Get user objects for the ids in the slice by requesting users.get VK API method */
@@ -87,6 +87,9 @@ func (bot * Bot) SendMessage(to int, msg string, keyboard *Keyboard)error {
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error reading body: %s", err))
+	}
+	if bot.verbose {
+		log.Printf("Response body: %s", string(body))
 	}
 	err = json.Unmarshal(body, &respObj)
 	if err != nil {
