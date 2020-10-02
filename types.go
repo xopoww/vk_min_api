@@ -2,6 +2,8 @@ package vk_min_api
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"regexp"
 )
 
@@ -93,4 +95,10 @@ type User struct {
 	ID				int						`json:"id"`
 	FirstName		string					`json:"first_name"`
 	LastName		string					`json:"last_name"`
+}
+
+var ErrAPI = errors.New("API error")
+
+func WrapApiErr(code int, msg string) error {
+	return fmt.Errorf("%w %d: %s", ErrAPI, code, msg)
 }

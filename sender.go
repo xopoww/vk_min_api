@@ -81,23 +81,26 @@ func (bot * Bot) SendMessage(to int, msg string, keyboard *Keyboard)error {
 	var(
 		body []byte
 		respObj struct{
-			Error string `json:"error"`
+			Error struct {
+				Code int `json:"error_code"`
+				Msg string `json:"error_msg"`
+			} `json:"error"`
 		}
 	)
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errors.New(fmt.Sprintf("error reading body: %s", err))
+		return fmt.Errorf("error reading body: %w", err)
 	}
 	if bot.verbose {
 		log.Printf("Response body: %s", string(body))
 	}
 	err = json.Unmarshal(body, &respObj)
 	if err != nil {
-		return errors.New(fmt.Sprintf("json: %s", err))
+		return fmt.Errorf("json: %w", err)
 	}
-	if respObj.Error == "" {
+	if respObj.Error.Msg == "" {
 		return nil
 	} else {
-		return errors.New(fmt.Sprintf("API error: %s", respObj.Error))
+		return WrapApiErr(respObj.Error.Code, respObj.Error.Msg)
 	}
 }
