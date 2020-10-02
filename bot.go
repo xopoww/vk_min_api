@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/xopoww/gologs"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"sync"
 )
@@ -16,7 +16,7 @@ type Bot struct {
 	callbackConfirmed	bool
 	callbackConfig		*CallbackConfig
 	secret				string
-	Logger				*gologs.Logger
+	//Logger
 
 	requestsChan		chan []byte
 	waitGroup			sync.WaitGroup
@@ -46,7 +46,7 @@ type Properties struct {
 	CallbackProps *CallbackConfig
 }
 
-func NewBot(properties Properties, listenForConfirmation bool, logger *gologs.Logger)(*Bot, error) {
+func NewBot(properties Properties, listenForConfirmation bool)(*Bot, error) {
 	if properties.CallbackProps == nil {
 		properties.CallbackProps = &CallbackConfig{
 			ReqProcessors: defaultReqProcessors,
@@ -70,14 +70,13 @@ func NewBot(properties Properties, listenForConfirmation bool, logger *gologs.Lo
 		callbackConfirmed: !listenForConfirmation,
 		callbackConfig: properties.CallbackProps,
 		secret: properties.Secret,
-		Logger: logger,
+		//Logger: logger,
 		requestsChan: make(chan []byte, properties.CallbackProps.ReqChanSize),
 		handlers: handlerPool{
 			commands:    map[string]func(*Message){},
 		},
 	}
 
-	bot.Logger.Info("Initialized a VK bot.")
 	return &bot, nil
 }
 
@@ -91,7 +90,7 @@ func (bot * Bot) Start() {
 			req := <- bot.requestsChan
 			err := bot.processRequest(req)
 			if err != nil {
-				bot.Logger.Errorf("Error processing a request: %s", err)
+				log.Printf("Error processing request: %s\n", err)
 			}
 		}()
 	}
@@ -103,9 +102,9 @@ func (bot * Bot) Start() {
 func (bot * Bot) StartWithServer(addr, endpoint string) {
 	http.HandleFunc(endpoint, bot.HTTPHandler())
 	go func() {
-		bot.Logger.Fatalf("HTTP Server failed: %s",
-			http.ListenAndServe(addr, nil))
+		err := http.ListenAndServe(addr, nil)
 		bot.Stop()
+		log.Fatalf("HTTP Server failed: %s", err)
 	}()
 	bot.Start()
 }
@@ -122,10 +121,9 @@ func (bot * Bot) HTTPHandler() func(http.ResponseWriter, *http.Request){
 	return func(w http.ResponseWriter, r *http.Request){
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			bot.Logger.Errorf("Error reading request body: %s", err)
+			log.Printf("Error reading request body: %s\n", err)
 			return
 		}
-		bot.Logger.Debugf("Got a %s request. Body: %s", r.Method, body)
 
 		if !bot.callbackConfirmed {
 			var confirmation struct {
@@ -134,13 +132,13 @@ func (bot * Bot) HTTPHandler() func(http.ResponseWriter, *http.Request){
 			}
 			err = json.Unmarshal(body, &confirmation)
 			if err != nil {
-				bot.Logger.Errorf("json error: %s", err)
+				log.Printf("json error: %s\n", err)
 				return
 			}
 			if confirmation.Type == "confirmation" && confirmation.GroupID == bot.callbackConfig.Confirmation.GroupID {
 				_, err = fmt.Fprint(w, bot.callbackConfig.Confirmation.Response)
 				if err != nil {
-					bot.Logger.Errorf("Error writing a response to confirmation request: %s", err)
+					log.Printf("Error writing a response to confirmation request: %s\n", err)
 				} else {
 					bot.callbackConfirmed = true
 				}
@@ -152,7 +150,7 @@ func (bot * Bot) HTTPHandler() func(http.ResponseWriter, *http.Request){
 
 		_, err = fmt.Fprint(w, "ok")
 		if err != nil {
-			bot.Logger.Errorf("Error writing a response: %s", err)
+			log.Printf("Error writing a response: %s\n", err)
 		}
 	}
 }
@@ -171,14 +169,14 @@ func (bot * Bot) processRequest(body []byte)error {
 		var obj struct{Object Message `json:"object"`}
 		err = json.Unmarshal(body, &obj)
 		if err != nil {
-			return errors.New(fmt.Sprintf("json: %s", err))
+			return fmt.Errorf("json: %w", err)
 		}
 		bot.handleNewMessage(&obj.Object)
 		return nil
 	case "bad_secret":
-		bot.Logger.Info("Got a request with a wrong secret")
+		log.Println("Got a request with a wrong secret")
 	default:
-		bot.Logger.Warningf("Unsupported request type: %s", reqType)
+		log.Printf("Unsupported request type: %s\n", reqType)
 	}
 
 	return nil
@@ -194,7 +192,7 @@ func (bot * Bot) getRequestType(body []byte)(string, error) {
 	}
 	err := json.Unmarshal(body, &ar)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("json: %s", err))
+		return "", fmt.Errorf("json: %w", err)
 	}
 	if ar.Secret == bot.secret {
 		return ar.Type, nil

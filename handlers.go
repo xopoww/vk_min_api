@@ -1,13 +1,21 @@
 package vk_min_api
 
+import "log"
+
 type handlerPool struct {
-	defaultText		*func(*Message)
+	defaultText		func(*Message)
 	commands		map[string]func(*Message)
 	custom			[]customHandler
+	callback		[]callbackHandler
 }
 
 type customHandler struct {
 	condition		func(*Message)bool
+	action			func(*Message)
+}
+
+type callbackHandler struct {
+	condition		func(string)bool
 	action			func(*Message)
 }
 
@@ -17,7 +25,7 @@ more than once, the default handler is taken from the last call (unrecommended).
 
 If not set and no other handler has fired on a message, a warning is logged.*/
 func (bot * Bot) HandleDefault(action func(*Message)) {
-	bot.handlers.defaultText = &action
+	bot.handlers.defaultText = action
 }
 
 /* Add the handler for the command. Has lower priority, than custom handlers, but higher priority,
@@ -37,7 +45,29 @@ func (bot * Bot) HandleCustom(condition func(*Message)bool, action func(*Message
 	bot.handlers.custom = append(bot.handlers.custom, customHandler{condition, action})
 }
 
+/* Add callback handler
+Callback handlers work similarly to custom handlers, but they are checked only if message has non-empty payload
+(and they're only handlers that are checked in this case).
+ */
+func (bot * Bot) HandleCallback(condition func(string)bool, action func(*Message)) {
+	bot.handlers.callback = append(bot.handlers.callback, callbackHandler{condition, action})
+}
+
 func (bot * Bot) handleNewMessage(m * Message) {
+	// if there is a payload...
+	if pay := m.Payload; pay != "" {
+		// ...use callback handlers
+		for _, hand := range bot.handlers.callback {
+			if hand.condition(pay) {
+				hand.action(m)
+				break
+			}
+		}
+		return
+	}
+
+	// no payload
+
 	// check custom handlers
 	for _, hand := range bot.handlers.custom {
 		if hand.condition(m) {
@@ -54,9 +84,9 @@ func (bot * Bot) handleNewMessage(m * Message) {
 	}
 	// apply default handler
 	if bot.handlers.defaultText != nil {
-		(*bot.handlers.defaultText)(m)
+		bot.handlers.defaultText(m)
 		return
 	}
 
-	bot.Logger.Warningf("Unhandled message: %s", m.Text)
+	log.Printf("Unhandled message: %s\n", m.Text)
 }

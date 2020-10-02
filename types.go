@@ -1,6 +1,9 @@
 package vk_min_api
 
-import "regexp"
+import (
+	"encoding/json"
+	"regexp"
+)
 
 type Message struct {
 	ID				int						`json:"id"`
@@ -43,15 +46,47 @@ type Keyboard struct {
 	Inline			bool					`json:"inline"`
 }
 
+func (k * Keyboard) MarshalJSON() ([]byte, error) {
+	data := make(map[string]interface{})
+	if k.Inline {
+		data["inline"] = true
+	} else {
+		data["one_time"] = k.OneTime
+	}
+	data["buttons"] = k.Buttons
+	return json.Marshal(data)
+}
+
 type KeyboardButton struct {
 	Action			KeyboardAction			`json:"action"`
 	Color			string					`json:"color"`
 }
 
+const (
+	ColorBlue = "primary"
+	ColorWhite = "secondary"
+	ColorGreen = "positive"
+	ColorRed = "negative"
+)
+
 type KeyboardAction struct {
 	Type			string					`json:"type"`
 	Label			string					`json:"label"`
 	Payload			string					`json:"payload"`
+}
+
+func NewCallbackButton(label, payload, color string) KeyboardButton {
+	if color == "" {
+		color = ColorWhite
+	}
+	return KeyboardButton{
+		Action: KeyboardAction{
+			Type:    "callback",
+			Label:   label,
+			Payload: payload,
+		},
+		Color:  color,
+	}
 }
 
 type User struct {

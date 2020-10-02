@@ -59,14 +59,20 @@ func (bot * Bot) GetUserByID(id int)(User, error){
 	return User{}, err
 }
 
-/* Send text message to user by id */
-func (bot * Bot) SendMessage(to int, msg string)error {
+/* Send text message to user by id
+If keyboard is not nil, it is attached to the message.*/
+func (bot * Bot) SendMessage(to int, msg string, keyboard *Keyboard)error {
 	values := url.Values{}
 	values.Set("user_id", fmt.Sprint(to))
 	values.Set("random_id", fmt.Sprint(rand.Uint32()))
 	values.Set("message", msg)
-
-	bot.Logger.Debugf("Sending message to user (id = %d): %s", to, msg)
+	if keyboard != nil {
+		keyboardData, err := json.Marshal(keyboard)
+		if err != nil {
+			return fmt.Errorf("json: %w", err)
+		}
+		values.Set("keyboard", string(keyboardData))
+	}
 
 	resp, err := bot.sendRequest("messages.send", values)
 	if err != nil {
@@ -82,7 +88,6 @@ func (bot * Bot) SendMessage(to int, msg string)error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("error reading body: %s", err))
 	}
-	bot.Logger.Debugf("Response body: %s", string(body))
 	err = json.Unmarshal(body, &respObj)
 	if err != nil {
 		return errors.New(fmt.Sprintf("json: %s", err))
