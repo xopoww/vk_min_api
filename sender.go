@@ -92,7 +92,7 @@ func (bot * Bot) SendMessageEventAnswer(event *MessageEvent, answer string) erro
 	values.Set("event_id", event.EventID)
 	values.Set("user_id", fmt.Sprint(event.UserID))
 	values.Set("peer_id", fmt.Sprint(event.PeerID))
-	values.Set("event_data", fmt.Sprintf(`{"type":"show_snackbar","text":%s}`, answer))
+	values.Set("event_data", fmt.Sprintf(`{"type":"show_snackbar","text":"%s"}`, answer))
 
 	resp, err := bot.sendRequest("messages.sendMessageEventAnswer", values)
 	if err != nil {
