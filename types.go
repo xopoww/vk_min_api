@@ -74,7 +74,7 @@ const (
 type KeyboardAction struct {
 	Type			string					`json:"type"`
 	Label			string					`json:"label"`
-	Payload			string					`json:"payload"`
+	Payload			map[string]interface{}	`json:"payload"`
 }
 
 func NewCallbackButton(label, payload, color string) KeyboardButton {
@@ -85,7 +85,7 @@ func NewCallbackButton(label, payload, color string) KeyboardButton {
 		Action: KeyboardAction{
 			Type:    "callback",
 			Label:   label,
-			Payload: payload,
+			Payload: map[string]interface{}{"data": payload},
 		},
 		Color:  color,
 	}
