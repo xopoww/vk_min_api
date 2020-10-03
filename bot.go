@@ -175,7 +175,7 @@ func (bot * Bot) processRequest(body []byte)error {
 	switch reqType {
 	case "message_new":
 		var m Message
-		err := UnmarshalObject(body, m)
+		err := UnmarshalObject(body, &m)
 		if err != nil {
 			return fmt.Errorf("json: %w", err)
 		}
@@ -183,7 +183,7 @@ func (bot * Bot) processRequest(body []byte)error {
 		return nil
 	case "message_event":
 		var m MessageEvent
-		err := UnmarshalObject(body, m)
+		err := UnmarshalObject(body, &m)
 		if err != nil {
 			return fmt.Errorf("json: %w", err)
 		}
