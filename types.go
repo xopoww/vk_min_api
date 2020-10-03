@@ -14,7 +14,7 @@ type Message struct {
 	FromID			int						`json:"from_id"`
 	Text			string					`json:"text"`
 
-	Payload			string					`json:"payload"`
+	Payload			map[string]interface{}	`json:"payload"`
 	Keyboard		Keyboard				`json:"keyboard"`
 
 	//ReplyMessage	vkMessage				`json:"reply_message"` ???
