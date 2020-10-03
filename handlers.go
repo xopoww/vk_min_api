@@ -57,6 +57,7 @@ func (bot * Bot) handleNewMessage(m * Message) {
 	if bot.verbose {
 		log.Printf("Got a message: %+v", m)
 	}
+	
 	// if there is a payload...
 	if pay := m.Payload; pay != nil {
 		// ...use callback handlers

@@ -150,6 +150,10 @@ func (bot * Bot) HTTPHandler() func(http.ResponseWriter, *http.Request){
 			}
 		}
 
+		if bot.verbose {
+			log.Printf("Got a request. Body: %s", string(body))
+		}
+
 		bot.requestsChan <- body
 
 		_, err = fmt.Fprint(w, "ok")
