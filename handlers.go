@@ -56,6 +56,9 @@ func (bot * Bot) HandleCallback(condition func(map[string]interface{})bool, acti
 func (bot * Bot) handleNewMessage(m * Message) {
 	// if there is a payload...
 	if pay := m.Payload; pay != nil {
+		if bot.verbose {
+			log.Printf("Got a message with payload: %v", pay)
+		}
 		// ...use callback handlers
 		for _, hand := range bot.handlers.callback {
 			if hand.condition(pay) {
