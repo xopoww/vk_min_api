@@ -174,12 +174,20 @@ func (bot * Bot) processRequest(body []byte)error {
 
 	switch reqType {
 	case "message_new":
-		var obj struct{Object Message `json:"object"`}
-		err = json.Unmarshal(body, &obj)
+		var m Message
+		err := UnmarshalObject(body, m)
 		if err != nil {
 			return fmt.Errorf("json: %w", err)
 		}
-		bot.handleNewMessage(&obj.Object)
+		bot.handleNewMessage(&m)
+		return nil
+	case "message_event":
+		var m MessageEvent
+		err := UnmarshalObject(body, m)
+		if err != nil {
+			return fmt.Errorf("json: %w", err)
+		}
+		bot.handleMessageEvent(&m)
 		return nil
 	case "bad_secret":
 		log.Println("Got a request with a wrong secret")
@@ -207,4 +215,9 @@ func (bot * Bot) getRequestType(body []byte)(string, error) {
 	} else {
 		return "bad_secret", nil
 	}
+}
+
+func UnmarshalObject(data []byte, dst interface{}) error {
+	obj := struct{ Object interface{} `json:"object"` }{dst}
+	return json.Unmarshal(data, &obj)
 }

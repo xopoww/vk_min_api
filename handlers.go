@@ -16,7 +16,7 @@ type customHandler struct {
 
 type callbackHandler struct {
 	condition		func(map[string]interface{})bool
-	action			func(*Message)
+	action			func(*MessageEvent)
 }
 
 /* Add the default Handler for messages
@@ -46,31 +46,12 @@ func (bot * Bot) HandleCustom(condition func(*Message)bool, action func(*Message
 }
 
 /* Add callback handler
-Callback handlers work similarly to custom handlers, but they are checked only if message has non-empty payload
-(and they're only handlers that are checked in this case).
  */
-func (bot * Bot) HandleCallback(condition func(map[string]interface{})bool, action func(*Message)) {
+func (bot * Bot) HandleCallback(condition func(map[string]interface{})bool, action func(*MessageEvent)) {
 	bot.handlers.callback = append(bot.handlers.callback, callbackHandler{condition, action})
 }
 
 func (bot * Bot) handleNewMessage(m * Message) {
-	if bot.verbose {
-		log.Printf("Got a message: %+v", m)
-	}
-	
-	// if there is a payload...
-	if pay := m.Payload; pay != nil {
-		// ...use callback handlers
-		for _, hand := range bot.handlers.callback {
-			if hand.condition(pay) {
-				hand.action(m)
-				break
-			}
-		}
-		return
-	}
-
-	// no payload
 
 	// check custom handlers
 	for _, hand := range bot.handlers.custom {
@@ -93,4 +74,15 @@ func (bot * Bot) handleNewMessage(m * Message) {
 	}
 
 	log.Printf("Unhandled message: %s\n", m.Text)
+}
+
+func (bot * Bot) handleMessageEvent(m * MessageEvent) {
+	for _, hand := range bot.handlers.callback {
+		if hand.condition(m.Payload) {
+			hand.action(m)
+			return
+		}
+	}
+
+	log.Printf("Unhandeled message event: %+v", *m)
 }

@@ -102,3 +102,10 @@ var ErrAPI = errors.New("API error")
 func WrapApiErr(code int, msg string) error {
 	return fmt.Errorf("%w %d: %s", ErrAPI, code, msg)
 }
+
+type MessageEvent struct {
+	UserID			int						`json:"user_id"`
+	PeerID			int						`json:"peer_id"`
+	EventID			string					`json:"event_id"`
+	Payload			map[string]interface{}	`json:"payload"`
+}
