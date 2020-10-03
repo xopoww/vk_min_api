@@ -91,10 +91,11 @@ func NewBot(properties Properties, listenForConfirmation bool)(*Bot, error) {
 func (bot * Bot) Start() {
 	for i := 0; i < bot.callbackConfig.ReqProcessors; i++ {
 		go func() {
-			req := <- bot.requestsChan
-			err := bot.processRequest(req)
-			if err != nil {
-				log.Printf("Error processing request: %s\n", err)
+			for req := range bot.requestsChan {
+				err := bot.processRequest(req)
+				if err != nil {
+					log.Printf("Error processing request: %s\n", err)
+				}
 			}
 		}()
 	}
