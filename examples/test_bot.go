@@ -72,11 +72,6 @@ func main() {
 			return false
 		},
 		func(m *vk.MessageEvent){
-			err := bot.SendMessageEventAnswer(m, "Incremented.")
-			if err != nil {
-				log.Printf("Send message event answer: %s", err)
-				return
-			}
 
 			msg, err := bot.GetMessageByID(messageID)
 			if err != nil {
@@ -86,6 +81,12 @@ func main() {
 			err = bot.EditMessage(m.PeerID, msg.ID, msg.Text + " a", &keyboard)
 			if err != nil {
 				log.Printf("Edit message: %s", err)
+				return
+			}
+			
+			err = bot.SendMessageEventAnswer(m, "Incremented.")
+			if err != nil {
+				log.Printf("Send message event answer: %s", err)
 			}
 		})
 
