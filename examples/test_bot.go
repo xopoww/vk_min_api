@@ -85,12 +85,7 @@ func main() {
 				log.Printf("Cannot get message: %s", err)
 				return
 			}
-			count, err := strconv.Atoi(msg.Text)
-			if err != nil {
-				log.Printf("Atoi: %s", err)
-				return
-			}
-			err = bot.EditMessage(m.PeerID, msg.ID, fmt.Sprint(count+1), &keyboard)
+			err = bot.EditMessage(m.PeerID, msg.ID, msg.Text + " a", &keyboard)
 			if err != nil {
 				log.Printf("Edit message: %s", err)
 			}
