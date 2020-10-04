@@ -99,7 +99,7 @@ func (bot * Bot) GetMessagesByID(ids []int)([]Message, error) {
 	for _, id := range ids {
 		values.Add("message_ids", fmt.Sprint(id))
 	}
-	values.Set("group_id", fmt.Sprint(bot.groupID))
+	//values.Set("group_id", fmt.Sprint(bot.groupID))
 	var messages []Message
 	err := bot.sendRequest("messages.getByID", values, &messages)
 	return messages, err
@@ -107,6 +107,25 @@ func (bot * Bot) GetMessagesByID(ids []int)([]Message, error) {
 
 func(bot * Bot) GetMessageByID(id int)(Message, error) {
 	messages, err := bot.GetMessagesByID([]int{id})
+	if len(messages) > 0 {
+		return messages[0], nil
+	}
+	return Message{}, err
+}
+
+func(bot * Bot) GetMessagesByConversationID(peerID int, ids []int)([]Message, error) {
+	values := url.Values{}
+	for _, id := range ids {
+		values.Add("conversation_message_ids", fmt.Sprint(id))
+	}
+	values.Add("peer_id", fmt.Sprint(peerID))
+	var messages []Message
+	err := bot.sendRequest("messages.getByConversationMessageId", values, &messages)
+	return messages, err
+}
+
+func(bot * Bot) GetMessageByConversationID(peerID, id int)(Message, error) {
+	messages, err := bot.GetMessagesByConversationID(peerID, []int{id})
 	if len(messages) > 0 {
 		return messages[0], nil
 	}

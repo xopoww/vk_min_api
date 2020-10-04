@@ -127,6 +127,7 @@ func WrapApiErr(code int, msg string) error {
 }
 
 type MessageEvent struct {
+	MessageID		int						`json:"conversation_message_id"`
 	UserID			int						`json:"user_id"`
 	PeerID			int						`json:"peer_id"`
 	EventID			string					`json:"event_id"`
