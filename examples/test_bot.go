@@ -42,13 +42,14 @@ func main() {
 
 	bot.HandleOnCommand("but", func(m * vk.MessageEvent){
 		arg, found := m.Payload["arg"]
-		argInt, ok := arg.(int)
+		argFloat, ok := arg.(float64)
+		argInt := int(argFloat)
 		var answer string
 		switch {
 		case !found:
 			answer = "Arg not found."
 		case !ok:
-			answer = "Arg not string."
+			answer = "Arg not int."
 		case argInt == 1:
 			answer = "Foo!"
 		case argInt == 2:
@@ -76,7 +77,7 @@ func main() {
 				return
 			}
 
-			msg, err := bot.GetMessageByConversationID(m.PeerID, m.MessageID)
+			msg, err := bot.GetMessageByConversationID(2000000000 + m.PeerID, m.MessageID)
 			if err != nil {
 				log.Printf("Cannot get message: %s", err)
 				return
