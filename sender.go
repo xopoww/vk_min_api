@@ -100,9 +100,11 @@ func (bot * Bot) GetMessagesByID(ids []int)([]Message, error) {
 		values.Add("message_ids", fmt.Sprint(id))
 	}
 	//values.Set("group_id", fmt.Sprint(bot.groupID))
-	var messages []Message
-	err := bot.sendRequest("messages.getById", values, &messages)
-	return messages, err
+	var result struct {
+		Messages []Message `json:"items"`
+	}
+	err := bot.sendRequest("messages.getById", values, &result)
+	return result.Messages, err
 }
 
 func(bot * Bot) GetMessageByID(id int)(Message, error) {
