@@ -4,7 +4,6 @@ import "log"
 
 type handlerPool struct {
 	defaultText		func(*Message)
-	commands		map[string]func(*Message)
 	custom			[]customHandler
 	callback		[]callbackHandler
 }
@@ -28,10 +27,24 @@ func (bot * Bot) HandleDefault(action func(*Message)) {
 	bot.handlers.defaultText = action
 }
 
-/* Add the handler for the command. Has lower priority, than custom handlers, but higher priority,
-than the default one.*/
-func (bot * Bot) HandleOnCommand(command string, action func(*Message)) {
-	bot.handlers.commands[command] = action
+// Add a special MessageEvent handler that fires if payload contains a field "command" of type string
+// equal to command.
+func (bot * Bot) HandleOnCommand(command string, action func(*MessageEvent)) {
+	bot.handlers.callback = append(bot.handlers.callback,
+		callbackHandler{
+			condition: func(payload map[string]interface{}) bool {
+				com, found := payload["command"]
+				if !found {
+					return false
+				}
+				comStr, ok := com.(string)
+				if !ok {
+					return false
+				}
+				return comStr == command
+			},
+			action:    action,
+		})
 }
 
 /* Add custom conditional handler.
@@ -47,26 +60,26 @@ func (bot * Bot) HandleCustom(condition func(*Message)bool, action func(*Message
 
 /* Add callback handler
  */
-func (bot * Bot) HandleCallback(condition func(map[string]interface{})bool, action func(*MessageEvent)) {
-	bot.handlers.callback = append(bot.handlers.callback, callbackHandler{condition, action})
+func (bot * Bot) HandleCallback(condition func(interface{})bool, action func(*MessageEvent)) {
+	bot.handlers.callback = append(bot.handlers.callback, callbackHandler{
+		condition: func(payload map[string]interface{}) bool {
+			if data, found := payload["data"]; found {
+				return condition(data)
+			}
+			return false
+		},
+		action:    action,
+	})
 }
 
 func (bot * Bot) handleNewMessage(m * Message) {
-
-	// check custom handlers
 	for _, hand := range bot.handlers.custom {
 		if hand.condition(m) {
 			hand.action(m)
 			return
 		}
 	}
-	// check command handlers
-	if com := m.Command(); com != "" {
-		if action, found := bot.handlers.commands[com]; found {
-			action(m)
-			return
-		}
-	}
+
 	// apply default handler
 	if bot.handlers.defaultText != nil {
 		bot.handlers.defaultText(m)

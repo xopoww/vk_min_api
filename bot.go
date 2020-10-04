@@ -75,9 +75,6 @@ func NewBot(properties Properties, listenForConfirmation bool)(*Bot, error) {
 		secret: properties.Secret,
 		//Logger: logger,
 		requestsChan: make(chan []byte, properties.CallbackProps.ReqChanSize),
-		handlers: handlerPool{
-			commands:    map[string]func(*Message){},
-		},
 		verbose: properties.VerboseLogging,
 	}
 

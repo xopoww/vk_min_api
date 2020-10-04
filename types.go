@@ -77,15 +77,38 @@ type KeyboardAction struct {
 	Payload			map[string]interface{}	`json:"payload"`
 }
 
-func NewCallbackButton(label, payload, color string) KeyboardButton {
+// Create a KeyboardButton with payload containing fields "command" and, possibly, "arg".
+// Pressing on that button will trigger the corresponding CommandHandler.
+func NewCommandButton(label, command string, arg interface{}, color string) KeyboardButton {
 	if color == "" {
 		color = ColorWhite
+	}
+	payload := map[string]interface{}{"command": command}
+	if arg != nil {
+		payload["arg"] = arg
 	}
 	return KeyboardButton{
 		Action: KeyboardAction{
 			Type:    "callback",
 			Label:   label,
-			Payload: map[string]interface{}{"data": payload},
+			Payload: payload,
+		},
+		Color:  color,
+	}
+}
+
+// Create a KeyboardButton with payload containing field "data". To catch the pressing of this button, add
+// the corresponding CallbackHandler.
+func NewDataButton(label string, data interface{}, color string) KeyboardButton {
+	if color == "" {
+		color = ColorWhite
+	}
+	payload := map[string]interface{}{"data": data}
+	return KeyboardButton{
+		Action: KeyboardAction{
+			Type:    "callback",
+			Label:   label,
+			Payload: payload,
 		},
 		Color:  color,
 	}
