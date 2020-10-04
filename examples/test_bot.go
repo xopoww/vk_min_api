@@ -92,5 +92,6 @@ func main() {
 			}
 		})
 
+	log.Println("Stating the bot...")
 	bot.StartWithServer("", "/vk")
 }

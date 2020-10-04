@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type Bot struct {
@@ -86,6 +88,7 @@ func NewBot(properties Properties, listenForConfirmation bool)(*Bot, error) {
 // NOTE: for CallbackAPI requests to be received (and processed) one must
 // start an http server with bot.HTTPHandler()
 func (bot * Bot) Start() {
+	rand.Seed(time.Now().Unix())
 	for i := 0; i < bot.callbackConfig.ReqProcessors; i++ {
 		go func() {
 			for req := range bot.requestsChan {
