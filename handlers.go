@@ -90,6 +90,10 @@ func (bot * Bot) handleNewMessage(m * Message) {
 }
 
 func (bot * Bot) handleMessageEvent(m * MessageEvent) {
+	if bot.verbose {
+		log.Printf("Handling message event with payload: %v", m.Payload)
+	}
+
 	for _, hand := range bot.handlers.callback {
 		if hand.condition(m.Payload) {
 			hand.action(m)

@@ -42,19 +42,17 @@ func main() {
 
 	bot.HandleOnCommand("but", func(m * vk.MessageEvent){
 		arg, found := m.Payload["arg"]
-		if !found {
-			return
-		}
 		argInt, ok := arg.(int)
-		if !ok {
-			return
-		}
 		var answer string
-		switch argInt {
-		case 1:
+		switch {
+		case !found || !ok:
+			answer = "Bad payload."
+		case argInt == 1:
 			answer = "Foo!"
-		case 2:
+		case argInt == 2:
 			answer = "Bar!"
+		default:
+			answer = "Unknown button."
 		}
 		err := bot.SendMessageEventAnswer(m, answer)
 		if err != nil {
