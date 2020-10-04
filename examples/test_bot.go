@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	vk "github.com/xopoww/vk_min_api"
 	"log"
 	"os"
-	"strconv"
 )
 
 func main() {
