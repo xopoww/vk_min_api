@@ -32,12 +32,15 @@ func main() {
 		panic(err)
 	}
 
+	var messageID int
+
 	bot.HandleDefault(
 		func(m *vk.Message){
-			_, err := bot.SendMessage(m.FromID, "1", &keyboard)
+			mid, err := bot.SendMessage(m.FromID, "1", &keyboard)
 			if err != nil {
 				log.Printf("Send message: %s", err)
 			}
+			messageID = mid
 		})
 
 	bot.HandleOnCommand("but", func(m * vk.MessageEvent){
@@ -77,7 +80,7 @@ func main() {
 				return
 			}
 
-			msg, err := bot.GetMessageByConversationID(2000000000 + m.PeerID, m.MessageID)
+			msg, err := bot.GetMessageByID(messageID)
 			if err != nil {
 				log.Printf("Cannot get message: %s", err)
 				return
