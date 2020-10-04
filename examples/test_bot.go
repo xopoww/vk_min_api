@@ -45,8 +45,10 @@ func main() {
 		argInt, ok := arg.(int)
 		var answer string
 		switch {
-		case !found || !ok:
-			answer = "Bad payload."
+		case !found:
+			answer = "Arg not found."
+		case !ok:
+			answer = "Arg not string."
 		case argInt == 1:
 			answer = "Foo!"
 		case argInt == 2:
@@ -68,7 +70,7 @@ func main() {
 			return false
 		},
 		func(m *vk.MessageEvent){
-			err := bot.SendMessageEventAnswer(m, "")
+			err := bot.SendMessageEventAnswer(m, "Incremented.")
 			if err != nil {
 				log.Printf("Send message event answer: %s", err)
 				return
